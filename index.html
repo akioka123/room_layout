@@ -10,202 +10,235 @@
 <body class="font-sans bg-gray-100 p-6">
   <h1 class="text-2xl font-bold mb-4">部屋レイアウトプランナー</h1>
   <!-- コントロール -->
-  <section id="controls" class="mb-6 flex flex-wrap gap-4 items-center">
-    <label class="flex items-center gap-2">幅 (mm):
-      <input id="roomWidth" type="number" value="5000" class="border rounded px-2 py-1 w-24" />
-    </label>
-    <label class="flex items-center gap-2">奥行き (mm):
-      <input id="roomDepth" type="number" value="4000" class="border rounded px-2 py-1 w-24" />
-    </label>
-    <label class="flex items-center gap-2">高さ (mm):
-      <input id="roomHeight" type="number" value="2500" class="border rounded px-2 py-1 w-24" />
-    </label>
-    <button id="addObjectBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-      オブジェクト追加
-    </button>
-    <button id="addFeatureBtn" class="bg-teal-500 text-white px-4 py-2 rounded hover:bg-teal-600">
-      部屋情報追加
-    </button>
-    <button id="saveBtn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-      保存
-    </button>
-    <button id="loadBtn" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">
-      読み込み（ローカル）
-    </button>
-    <button id="loadFileBtn" class="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600">
-      ファイルから読み込み
-    </button>
-    <button id="downloadBtn" class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600">
-      ダウンロード
-    </button>
+  <section id="controls" class="mb-6 flex flex-col gap-4 items-start">
+    <div class="flex flex-wrap gap-2 items-center mb-2">
+      <label class="flex items-center gap-2">帖数:
+        <select id="roomJou" class="border rounded px-2 py-1">
+          <option value="5-square">5帖</option>
+          <option value="5-vertical">5帖（縦長）</option>
+          <option value="5-horizontal">5帖（横長）</option>
+          <option value="6-square" selected>6帖</option>
+          <option value="6-vertical">6帖（縦長）</option>
+          <option value="6-horizontal">6帖（横長）</option>
+          <option value="7-square">7帖</option>
+          <option value="7-vertical">7帖（縦長）</option>
+          <option value="7-horizontal">7帖（横長）</option>
+          <option value="8-square">8帖</option>
+          <option value="8-vertical">8帖（縦長）</option>
+          <option value="8-horizontal">8帖（横長）</option>
+        </select>
+      </label>
+      <label class="flex items-center gap-2">面積:
+        <input id="roomArea" type="number" value="30" readonly class="border rounded px-2 py-1 w-24 bg-gray-100" />
+        m²
+      </label>
+    </div>
+    <div class="flex flex-wrap gap-2 items-center mb-2">
+      <label class="flex items-center gap-2">幅 (mm):
+        <input id="roomWidth" type="number" value="5000" min="2000" max="5000" class="border rounded px-2 py-1 w-24" />
+      </label>
+      <label class="flex items-center gap-2">奥行き (mm):
+        <input id="roomDepth" type="number" value="4000" min="2000" max="5000" class="border rounded px-2 py-1 w-24" />
+      </label>
+      <label class="flex items-center gap-2">高さ (mm):
+        <input id="roomHeight" type="number" value="2500" min="2000" max="3000" class="border rounded px-2 py-1 w-24" />
+      </label>
+    </div>
+    <div class="flex flex-wrap gap-2 items-center mb-2">
+      <button id="addObjectBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+        オブジェクト追加
+      </button>
+      <button id="addFeatureBtn" class="bg-teal-500 text-white px-4 py-2 rounded hover:bg-teal-600">
+        部屋情報追加
+      </button>
+      <button id="saveBtn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+        保存
+      </button>
+      <button id="loadBtn" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">
+        読み込み（ローカル）
+      </button>
+      <button id="loadFileBtn" class="bg-indigo-500 text-white px-4 py-2 rounded hover:bg-indigo-600">
+        ファイルから読み込み
+      </button>
+      <button id="downloadBtn" class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600">
+        ダウンロード
+      </button>
+    </div>
     <input type="file" id="fileInput" accept=".json" class="hidden" />
   </section>
-  <!-- オブジェクト入力フォーム（デフォルト hidden） -->
-
-  <section id="objectForm" class="mb-6 hidden flex flex-col gap-2 border p-4 rounded bg-white shadow">
-    <h2 class="text-lg font-semibold">オブジェクト情報</h2>
-    <div class="flex flex-wrap gap-2 items-center mb-2">
-      <label class="flex items-center gap-2">名前:
-        <input id="objName" type="text" class="border rounded px-2 py-1 w-32" placeholder="例: 机" />
-      </label>
+  <!-- 上面ビューとフォーム領域を横並びに配置 -->
+  <section id="topViewSection" class="mb-6 flex flex-col md:flex-row gap-4">
+    <!-- 上面ビュー（左側） -->
+    <div class="flex-1">
+      <figure class="bg-white p-2 rounded shadow">
+        <div class="flex justify-center">
+          <canvas id="topView" width="600" height="600" class="border border-gray-300"></canvas>
+        </div>
+        <figcaption class="text-center mt-2 font-medium">
+          <span id="topCaption"></span>
+        </figcaption>
+      </figure>
     </div>
-    <div class="flex flex-wrap gap-2 items-center">
-      <label class="flex items-center gap-2">幅 (mm):
-        <input id="objW" type="number" class="border rounded px-2 py-1 w-24" value="1000" />
-      </label>
-      <label class="flex items-center gap-2">奥行き (mm):
-        <input id="objD" type="number" class="border rounded px-2 py-1 w-24" value="1000" />
-      </label>
-      <label class="flex items-center gap-2">高さ (mm):
-        <input id="objH" type="number" class="border rounded px-2 py-1 w-24" value="1000" />
-      </label>
+    <!-- フォーム領域（右側・固定幅） -->
+    <div class="w-full md:w-96 flex-shrink-0">
+      <!-- オブジェクト入力フォーム（デフォルト hidden） -->
+      <section id="objectForm" class="mb-4 hidden flex flex-col gap-2 border p-4 rounded bg-white shadow">
+        <h2 class="text-lg font-semibold">オブジェクト情報</h2>
+        <div class="flex flex-wrap gap-2 items-center mb-2">
+          <label class="flex items-center gap-2">名前:
+            <input id="objName" type="text" class="border rounded px-2 py-1 w-32" placeholder="例: 机" />
+          </label>
+        </div>
+        <div class="flex flex-wrap gap-2 items-center">
+          <label class="flex items-center gap-2">幅 (mm):
+            <input id="objW" type="number" class="border rounded px-2 py-1 w-24" value="1000" />
+          </label>
+          <label class="flex items-center gap-2">奥行き (mm):
+            <input id="objD" type="number" class="border rounded px-2 py-1 w-24" value="1000" />
+          </label>
+          <label class="flex items-center gap-2">高さ (mm):
+            <input id="objH" type="number" class="border rounded px-2 py-1 w-24" value="1000" />
+          </label>
+        </div>
+        <div class="flex flex-wrap gap-2 items-center mt-2">
+          <label class="flex items-center gap-2">X (mm):
+            <input id="objX" type="number" class="border rounded px-2 py-1 w-24" value="0" />
+          </label>
+          <label class="flex items-center gap-2">Y (mm):
+            <input id="objY" type="number" class="border rounded px-2 py-1 w-24" value="0" />
+          </label>
+          <label class="flex items-center gap-2">Z (mm):
+            <input id="objZ" type="number" class="border rounded px-2 py-1 w-24" value="0" />
+          </label>
+        </div>
+        <label class="flex items-center gap-2 mt-2">色:
+          <select id="objColor" class="border rounded px-2 py-1">
+            <option value="rgba(0,150,255,0.5)">青</option>
+            <option value="rgba(255,99,71,0.5)">赤</option>
+            <option value="rgba(34,139,34,0.5)">緑</option>
+            <option value="rgba(255,215,0,0.5)">黄</option>
+            <option value="rgba(138,43,226,0.5)">紫</option>
+            <option value="rgba(0,0,0,0.5)">黒</option>
+            <option value="rgba(255,255,255,0.5)">白</option>
+            <option value="rgba(255,255,255,0.5)">透明</option>
+          </select>
+        </label>
+        <label class="flex items-center gap-2 mt-2">
+          <input id="objStackable" type="checkbox" checked class="w-4 h-4" />
+          <span>上面ビューで重ねられる</span>
+        </label>
+        <button id="confirmAddBtn" class="mt-2 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+          追加確定
+        </button>
+        <button id="cancelAddBtn" class="mt-2 bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500">
+          キャンセル
+        </button>
+      </section>
+      <!-- 部屋情報入力フォーム（デフォルト hidden） -->
+      <section id="featureForm" class="mb-4 hidden flex flex-col gap-2 border p-4 rounded bg-white shadow">
+        <h2 class="text-lg font-semibold">部屋情報</h2>
+        <div class="flex flex-wrap gap-2 items-center mb-2">
+          <label class="flex items-center gap-2">種類:
+            <select id="featureType" class="border rounded px-2 py-1">
+              <option value="window">窓</option>
+              <option value="door">ドア</option>
+              <option value="closet">クローゼット</option>
+            </select>
+          </label>
+        </div>
+        <div class="flex flex-wrap gap-2 items-center">
+          <label class="flex items-center gap-2">壁面:
+            <select id="featureWall" class="border rounded px-2 py-1">
+              <option value="top">上</option>
+              <option value="right">右</option>
+              <option value="bottom">下</option>
+              <option value="left">左</option>
+            </select>
+          </label>
+          <label class="flex items-center gap-2">位置 (mm):
+            <input id="featurePosition" type="number" class="border rounded px-2 py-1 w-24" value="0" />
+          </label>
+          <label class="flex items-center gap-2">幅 (mm):
+            <input id="featureWidth" type="number" class="border rounded px-2 py-1 w-24" value="1000" />
+          </label>
+        </div>
+        <button id="confirmFeatureBtn" class="mt-2 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+          追加確定
+        </button>
+        <button id="cancelFeatureBtn" class="mt-2 bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500">
+          キャンセル
+        </button>
+      </section>
+      <!-- オブジェクト編集フォーム（デフォルト hidden） -->
+      <section id="editObjectForm" class="mb-4 hidden flex flex-col gap-2 border p-4 rounded bg-white shadow">
+        <h2 class="text-lg font-semibold">オブジェクト編集</h2>
+        <div class="flex flex-wrap gap-2 items-center mb-2">
+          <label class="flex items-center gap-2">名前:
+            <input id="editObjName" type="text" class="border rounded px-2 py-1 w-32" placeholder="例: 机" />
+          </label>
+        </div>
+        <div class="flex flex-wrap gap-2 items-center">
+          <label class="flex items-center gap-2">幅 (mm):
+            <input id="editObjW" type="number" class="border rounded px-2 py-1 w-24" value="1000" />
+          </label>
+          <label class="flex items-center gap-2">奥行き (mm):
+            <input id="editObjD" type="number" class="border rounded px-2 py-1 w-24" value="1000" />
+          </label>
+          <label class="flex items-center gap-2">高さ (mm):
+            <input id="editObjH" type="number" class="border rounded px-2 py-1 w-24" value="1000" />
+          </label>
+        </div>
+        <div class="flex flex-wrap gap-2 items-center mt-2">
+          <label class="flex items-center gap-2">X (mm):
+            <input id="editObjX" type="number" class="border rounded px-2 py-1 w-24" value="0" />
+          </label>
+          <label class="flex items-center gap-2">Y (mm):
+            <input id="editObjY" type="number" class="border rounded px-2 py-1 w-24" value="0" />
+          </label>
+          <label class="flex items-center gap-2">Z (mm):
+            <input id="editObjZ" type="number" class="border rounded px-2 py-1 w-24" value="0" />
+          </label>
+        </div>
+        <label class="flex items-center gap-2 mt-2">色:
+          <select id="editObjColor" class="border rounded px-2 py-1">
+            <option value="rgba(0,150,255,0.5)">青</option>
+            <option value="rgba(255,99,71,0.5)">赤</option>
+            <option value="rgba(34,139,34,0.5)">緑</option>
+            <option value="rgba(255,215,0,0.5)">黄</option>
+            <option value="rgba(138,43,226,0.5)">紫</option>
+            <option value="rgba(0,0,0,0.5)">黒</option>
+            <option value="rgba(255,255,255,0.5)">白</option>
+            <option value="rgba(255,255,255,0.5)">透明</option>
+          </select>
+        </label>
+        <label class="flex items-center gap-2 mt-2">
+          <input id="editObjStackable" type="checkbox" checked class="w-4 h-4" />
+          <span>上面ビューで重ねられる</span>
+        </label>
+        <div class="flex gap-2 mt-2">
+          <button id="updateObjectBtn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+            更新確定
+          </button>
+          <button id="deleteObjectBtn" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+            削除
+          </button>
+          <button id="rotateObjectBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+            回転
+          </button>
+          <button id="cancelEditBtn" class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500">
+            キャンセル
+          </button>
+        </div>
+      </section>
     </div>
-    <div class="flex flex-wrap gap-2 items-center mt-2">
-      <label class="flex items-center gap-2">X (mm):
-        <input id="objX" type="number" class="border rounded px-2 py-1 w-24" value="0" />
-      </label>
-      <label class="flex items-center gap-2">Y (mm):
-        <input id="objY" type="number" class="border rounded px-2 py-1 w-24" value="0" />
-      </label>
-      <label class="flex items-center gap-2">Z (mm):
-        <input id="objZ" type="number" class="border rounded px-2 py-1 w-24" value="0" />
-      </label>
-    </div>
-    <label class="flex items-center gap-2 mt-2">色:
-      <select id="objColor" class="border rounded px-2 py-1">
-        <option value="rgba(0,150,255,0.5)">青</option>
-        <option value="rgba(255,99,71,0.5)">赤</option>
-        <option value="rgba(34,139,34,0.5)">緑</option>
-        <option value="rgba(255,215,0,0.5)">黄</option>
-        <option value="rgba(138,43,226,0.5)">紫</option>
-        <option value="rgba(0,0,0,0.5)">黒</option>
-        <option value="rgba(255,255,255,0.5)">白</option>
-        <option value="rgba(255,255,255,0.5)">透明</option>
-      </select>
-    </label>
-    <label class="flex items-center gap-2 mt-2">
-      <input id="objStackable" type="checkbox" checked class="w-4 h-4" />
-      <span>上面ビューで重ねられる</span>
-    </label>
-    <button id="confirmAddBtn" class="mt-2 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-      追加確定
-    </button>
-    <button id="cancelAddBtn" class="mt-2 bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500">
-      キャンセル
-    </button>
   </section>
-  <!-- 部屋情報入力フォーム（デフォルト hidden） -->
-  <section id="featureForm" class="mb-6 hidden flex flex-col gap-2 border p-4 rounded bg-white shadow">
-    <h2 class="text-lg font-semibold">部屋情報</h2>
-    <div class="flex flex-wrap gap-2 items-center mb-2">
-      <label class="flex items-center gap-2">種類:
-        <select id="featureType" class="border rounded px-2 py-1">
-          <option value="window">窓</option>
-          <option value="door">ドア</option>
-          <option value="closet">クローゼット</option>
-        </select>
-      </label>
-    </div>
-    <div class="flex flex-wrap gap-2 items-center">
-      <label class="flex items-center gap-2">壁面:
-        <select id="featureWall" class="border rounded px-2 py-1">
-          <option value="top">上</option>
-          <option value="right">右</option>
-          <option value="bottom">下</option>
-          <option value="left">左</option>
-        </select>
-      </label>
-      <label class="flex items-center gap-2">位置 (mm):
-        <input id="featurePosition" type="number" class="border rounded px-2 py-1 w-24" value="0" />
-      </label>
-      <label class="flex items-center gap-2">幅 (mm):
-        <input id="featureWidth" type="number" class="border rounded px-2 py-1 w-24" value="1000" />
-      </label>
-    </div>
-    <button id="confirmFeatureBtn" class="mt-2 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-      追加確定
-    </button>
-    <button id="cancelFeatureBtn" class="mt-2 bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500">
-      キャンセル
-    </button>
-  </section>
-  <!-- オブジェクト編集フォーム（デフォルト hidden） -->
-  <section id="editObjectForm" class="mb-6 hidden flex flex-col gap-2 border p-4 rounded bg-white shadow">
-    <h2 class="text-lg font-semibold">オブジェクト編集</h2>
-    <div class="flex flex-wrap gap-2 items-center mb-2">
-      <label class="flex items-center gap-2">名前:
-        <input id="editObjName" type="text" class="border rounded px-2 py-1 w-32" placeholder="例: 机" />
-      </label>
-    </div>
-    <div class="flex flex-wrap gap-2 items-center">
-      <label class="flex items-center gap-2">幅 (mm):
-        <input id="editObjW" type="number" class="border rounded px-2 py-1 w-24" value="1000" />
-      </label>
-      <label class="flex items-center gap-2">奥行き (mm):
-        <input id="editObjD" type="number" class="border rounded px-2 py-1 w-24" value="1000" />
-      </label>
-      <label class="flex items-center gap-2">高さ (mm):
-        <input id="editObjH" type="number" class="border rounded px-2 py-1 w-24" value="1000" />
-      </label>
-    </div>
-    <div class="flex flex-wrap gap-2 items-center mt-2">
-      <label class="flex items-center gap-2">X (mm):
-        <input id="editObjX" type="number" class="border rounded px-2 py-1 w-24" value="0" />
-      </label>
-      <label class="flex items-center gap-2">Y (mm):
-        <input id="editObjY" type="number" class="border rounded px-2 py-1 w-24" value="0" />
-      </label>
-      <label class="flex items-center gap-2">Z (mm):
-        <input id="editObjZ" type="number" class="border rounded px-2 py-1 w-24" value="0" />
-      </label>
-    </div>
-    <label class="flex items-center gap-2 mt-2">色:
-      <select id="editObjColor" class="border rounded px-2 py-1">
-        <option value="rgba(0,150,255,0.5)">青</option>
-        <option value="rgba(255,99,71,0.5)">赤</option>
-        <option value="rgba(34,139,34,0.5)">緑</option>
-        <option value="rgba(255,215,0,0.5)">黄</option>
-        <option value="rgba(138,43,226,0.5)">紫</option>
-        <option value="rgba(0,0,0,0.5)">黒</option>
-        <option value="rgba(255,255,255,0.5)">白</option>
-        <option value="rgba(255,255,255,0.5)">透明</option>
-      </select>
-    </label>
-    <label class="flex items-center gap-2 mt-2">
-      <input id="editObjStackable" type="checkbox" checked class="w-4 h-4" />
-      <span>上面ビューで重ねられる</span>
-    </label>
-    <div class="flex gap-2 mt-2">
-      <button id="updateObjectBtn" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-        更新確定
-      </button>
-      <button id="deleteObjectBtn" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
-        削除
-      </button>
-      <button id="rotateObjectBtn" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-        回転
-      </button>
-      <button id="cancelEditBtn" class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500">
-        キャンセル
-      </button>
-    </div>
-  </section>
-  <!-- ビュー（3方向） – 常に表示 -->
+  <!-- ビュー（正面・側面） – 常に表示 -->
   <section id="views" class="flex flex-col gap-4">
-    <!-- 上面図（1.2倍） -->
-    <figure class="bg-white p-2 rounded shadow">
-      <div class="flex justify-center">
-        <canvas id="topView" width="1000" height="480" class="border border-gray-300"></canvas>
-      </div>
-      <figcaption class="text-center mt-2 font-medium">
-        <span id="topCaption"></span>
-      </figcaption>
-    </figure>
     <!-- 正面と側面（下段） -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <figure class="bg-white p-2 rounded shadow">
         <div class="flex justify-center">
-          <canvas id="frontView" width="800" height="400" class="border border-gray-300"></canvas>
+          <canvas id="frontView" width="600" height="300" class="border border-gray-300"></canvas>
         </div>
         <figcaption class="text-center mt-2 font-medium">
           <span id="frontCaption"></span>
@@ -213,7 +246,7 @@
       </figure>
       <figure class="bg-white p-2 rounded shadow">
         <div class="flex justify-center">
-          <canvas id="sideView" width="800" height="400" class="border border-gray-300"></canvas>
+          <canvas id="sideView" width="600" height="300" class="border border-gray-300"></canvas>
         </div>
         <figcaption class="text-center mt-2 font-medium">
           <span id="sideCaption"></span>
@@ -222,7 +255,24 @@
     </div>
   </section>
 
-  
+
+  <!-- モデルクラス -->
+  <script src="models/Room.js"></script>
+  <script src="models/LayoutObject.js"></script>
+  <script src="models/RoomFeature.js"></script>
+  <!-- マネージャークラス -->
+  <script src="managers/ObjectManager.js"></script>
+  <script src="managers/FeatureManager.js"></script>
+  <script src="managers/StorageManager.js"></script>
+  <!-- レンダラークラス -->
+  <script src="renderers/RoomFeatureRenderer.js"></script>
+  <script src="renderers/ViewRenderer.js"></script>
+  <!-- UIクラス -->
+  <script src="ui/UIManager.js"></script>
+  <script src="ui/DragAndDropHandler.js"></script>
+  <!-- ユーティリティクラス -->
+  <script src="utils/CoordinateConverter.js"></script>
+  <!-- メインアプリケーション -->
   <script src="app.js"></script>
 </body>
 
