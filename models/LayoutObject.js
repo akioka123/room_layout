@@ -3,6 +3,7 @@
  */
 class LayoutObject {
   constructor({
+    id = null,
     name = '',
     w = 1000,
     d = 1000,
@@ -13,6 +14,7 @@ class LayoutObject {
     color = 'rgba(0,150,255,0.5)',
     stackable = true
   } = {}) {
+    this.id = id || this.generateId();
     this.name = name;
     this.w = w; // 幅
     this.d = d; // 奥行き
@@ -22,6 +24,14 @@ class LayoutObject {
     this.z = z; // Z座標
     this.color = color;
     this.stackable = stackable;
+  }
+
+  /**
+   * 一意のIDを生成する
+   * @returns {string} 生成されたID
+   */
+  generateId() {
+    return 'obj_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
   }
 
   /**
@@ -65,6 +75,7 @@ class LayoutObject {
    */
   toJSON() {
     return {
+      id: this.id,
       name: this.name,
       w: this.w,
       d: this.d,
@@ -84,6 +95,7 @@ class LayoutObject {
    */
   static fromJSON(data) {
     return new LayoutObject({
+      id: data.id || null,
       name: data.name || '',
       w: data.w,
       d: data.d,

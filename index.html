@@ -5,6 +5,7 @@
   <meta charset="UTF-8" />
   <title>部屋レイアウトプランナー</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 
 <body class="font-sans bg-gray-100 p-6">
@@ -66,6 +67,27 @@
     </div>
     <input type="file" id="fileInput" accept=".json" class="hidden" />
   </section>
+  <!-- オブジェクト一覧とグループ管理 -->
+  <section id="objectListSection" class="mb-6">
+    <div class="bg-white p-4 rounded shadow">
+      <h2 class="text-xl font-bold mb-4">オブジェクト一覧</h2>
+      <div id="objectList" class="mb-4 max-h-48 overflow-y-auto border rounded p-2">
+        <p class="text-gray-500 text-sm">オブジェクトがありません</p>
+      </div>
+      <div class="flex flex-wrap gap-2 items-center mb-4">
+        <button id="createGroupBtn" class="bg-cyan-500 text-white px-4 py-2 rounded hover:bg-cyan-600" disabled>
+          グループ作成
+        </button>
+        <input id="groupNameInput" type="text" placeholder="グループ名（オプション）" class="border rounded px-2 py-1 w-48" />
+      </div>
+      <div id="groupListSection" class="mt-4">
+        <h3 class="text-lg font-semibold mb-2">グループ一覧</h3>
+        <div id="groupList" class="space-y-2">
+          <p class="text-gray-500 text-sm">グループがありません</p>
+        </div>
+      </div>
+    </div>
+  </section>
   <!-- 上面ビューとフォーム領域を横並びに配置 -->
   <section id="topViewSection" class="mb-6 flex flex-col md:flex-row gap-4">
     <!-- 上面ビュー（左側） -->
@@ -119,10 +141,26 @@
             <option value="rgba(255,215,0,0.5)">黄</option>
             <option value="rgba(138,43,226,0.5)">紫</option>
             <option value="rgba(0,0,0,0.5)">黒</option>
-            <option value="rgba(255,255,255,0.5)">白</option>
+            <option value="rgba(103,78,64,0.5)">茶色</option>
+            <option value="rgba(230,120,50,0.5)">ベージュ</option>
+            <option value="rgba(240,240,240,0.5)">白</option>
             <option value="rgba(255,255,255,0.5)">透明</option>
           </select>
         </label>
+        <div class="mt-2 p-2 border rounded bg-gray-50">
+          <div class="text-sm font-medium mb-2">色を追加</div>
+          <div class="flex flex-wrap gap-2 items-center">
+            <label class="flex items-center gap-2">色:
+              <input id="newColorPicker" type="color" value="#0096ff" class="w-12 h-8 border rounded" />
+            </label>
+            <label class="flex items-center gap-2">色名:
+              <input id="newColorName" type="text" placeholder="例: オレンジ" class="border rounded px-2 py-1 w-24" />
+            </label>
+            <button id="addColorBtn" class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">
+              追加
+            </button>
+          </div>
+        </div>
         <label class="flex items-center gap-2 mt-2">
           <input id="objStackable" type="checkbox" checked class="w-4 h-4" />
           <span>上面ビューで重ねられる</span>
@@ -207,10 +245,26 @@
             <option value="rgba(255,215,0,0.5)">黄</option>
             <option value="rgba(138,43,226,0.5)">紫</option>
             <option value="rgba(0,0,0,0.5)">黒</option>
-            <option value="rgba(255,255,255,0.5)">白</option>
+            <option value="rgba(103,78,64,0.5)">茶色</option>
+            <option value="rgba(230,120,50,0.5)">ベージュ</option>
+            <option value="rgba(240,240,240,0.5)">白</option>
             <option value="rgba(255,255,255,0.5)">透明</option>
           </select>
         </label>
+        <div class="mt-2 p-2 border rounded bg-gray-50">
+          <div class="text-sm font-medium mb-2">色を追加</div>
+          <div class="flex flex-wrap gap-2 items-center">
+            <label class="flex items-center gap-2">色:
+              <input id="newEditColorPicker" type="color" value="#0096ff" class="w-12 h-8 border rounded" />
+            </label>
+            <label class="flex items-center gap-2">色名:
+              <input id="newEditColorName" type="text" placeholder="例: オレンジ" class="border rounded px-2 py-1 w-24" />
+            </label>
+            <button id="addEditColorBtn" class="bg-blue-500 text-white px-3 py-1 rounded text-sm hover:bg-blue-600">
+              追加
+            </button>
+          </div>
+        </div>
         <label class="flex items-center gap-2 mt-2">
           <input id="editObjStackable" type="checkbox" checked class="w-4 h-4" />
           <span>上面ビューで重ねられる</span>
@@ -255,18 +309,100 @@
     </div>
   </section>
 
+  <!-- 3Dビューセクション -->
+  <section id="view3DSection" class="mb-6 flex flex-col gap-4">
+    <div class="bg-white p-4 rounded shadow">
+      <h2 class="text-xl font-bold mb-4">3Dビュー</h2>
+      
+      <!-- ビュータイプ切り替え -->
+      <div class="mb-4 flex flex-wrap gap-2 items-center">
+        <label class="font-medium">ビュータイプ:</label>
+        <button id="view3DIsometric" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 view3D-type-btn active">
+          見取図
+        </button>
+        <button id="view3DElevation" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 view3D-type-btn">
+          立面図
+        </button>
+        <button id="view3DPlan" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 view3D-type-btn">
+          平面図
+        </button>
+      </div>
+
+      <!-- 方向切り替え -->
+      <div class="mb-4 flex flex-wrap gap-2 items-center">
+        <label class="font-medium">方向:</label>
+        <button id="view3DFront" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 view3D-direction-btn active">
+          前
+        </button>
+        <button id="view3DBack" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 view3D-direction-btn">
+          後
+        </button>
+        <button id="view3DLeft" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 view3D-direction-btn">
+          左
+        </button>
+        <button id="view3DRight" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 view3D-direction-btn">
+          右
+        </button>
+        <button id="view3DRotateRight30" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 ml-4">
+          ↻ 右に30°回転
+        </button>
+        <button id="view3DUpdate" class="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 ml-4">
+          更新
+        </button>
+      </div>
+
+      <!-- ズーム制御 -->
+      <div class="mb-4 flex flex-wrap gap-2 items-center">
+        <label class="font-medium">ズーム:</label>
+        <button id="view3DZoomOut" class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500">
+          − 縮小
+        </button>
+        <button id="view3DZoomReset" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+          ↺ 標準
+        </button>
+        <button id="view3DZoomIn" class="bg-gray-400 text-white px-4 py-2 rounded hover:bg-gray-500">
+          + 拡大
+        </button>
+        <span id="view3DZoomLevel" class="ml-2 text-sm text-gray-600">標準</span>
+      </div>
+
+      <!-- フローリング色選択 -->
+      <div class="mb-4 flex flex-wrap gap-2 items-center">
+        <label class="font-medium">フローリング:</label>
+        <button id="flooringDarkBrown" class="bg-amber-900 text-white px-4 py-2 rounded hover:bg-amber-800 flooring-color-btn active" style="background-color: #5C4033;">
+          こげ茶
+        </button>
+        <button id="flooringWhite" class="bg-gray-200 text-gray-800 px-4 py-2 rounded hover:bg-gray-300 flooring-color-btn" style="background-color: #F5F5F5;">
+          白
+        </button>
+        <button id="flooringBeige" class="bg-amber-100 text-amber-900 px-4 py-2 rounded hover:bg-amber-200 flooring-color-btn" style="background-color: #F5E6D3;">
+          ベージュ
+        </button>
+      </div>
+
+      <!-- 3Dキャンバスコンテナ -->
+      <div id="view3DContainer" class="w-full" style="height: 600px; border: 1px solid #ccc; background: #f0f0f0;"></div>
+      
+      <figcaption class="text-center mt-2 font-medium">
+        <span id="view3DCaption">見取図 - 前方向</span>
+      </figcaption>
+    </div>
+  </section>
 
   <!-- モデルクラス -->
   <script src="models/Room.js"></script>
   <script src="models/LayoutObject.js"></script>
   <script src="models/RoomFeature.js"></script>
+  <script src="models/ObjectGroup.js"></script>
   <!-- マネージャークラス -->
   <script src="managers/ObjectManager.js"></script>
   <script src="managers/FeatureManager.js"></script>
+  <script src="managers/GroupManager.js"></script>
   <script src="managers/StorageManager.js"></script>
   <!-- レンダラークラス -->
   <script src="renderers/RoomFeatureRenderer.js"></script>
   <script src="renderers/ViewRenderer.js"></script>
+  <script src="renderers/View3DRenderer.js"></script>
   <!-- UIクラス -->
   <script src="ui/UIManager.js"></script>
   <script src="ui/DragAndDropHandler.js"></script>

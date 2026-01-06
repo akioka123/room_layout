@@ -2,12 +2,22 @@
  * レイアウトデータの保存・読み込みを行うクラス
  */
 class StorageManager {
-  constructor(room, objectManager, featureManager) {
+  constructor(room, objectManager, featureManager, groupManager = null) {
     this.room = room;
     this.objectManager = objectManager;
     this.featureManager = featureManager;
+    this.groupManager = groupManager;
+    this.uiManager = null; // UIManagerへの参照（後で設定）
     this.storageKey = 'roomLayout';
     this.version = '1.0';
+  }
+
+  /**
+   * UIManagerへの参照を設定する
+   * @param {UIManager} uiManager - UIManagerインスタンス
+   */
+  setUIManager(uiManager) {
+    this.uiManager = uiManager;
   }
 
   /**
@@ -21,6 +31,17 @@ class StorageManager {
       version: this.version,
       savedAt: new Date().toISOString()
     };
+    
+    // グループ情報を保存
+    if (this.groupManager) {
+      layoutData.groups = this.groupManager.getAll().map(group => group.toJSON());
+    }
+    
+    // カスタム色を保存
+    if (this.uiManager) {
+      layoutData.customColors = this.uiManager.getCustomColors();
+    }
+    
     localStorage.setItem(this.storageKey, JSON.stringify(layoutData));
   }
 
@@ -77,6 +98,16 @@ class StorageManager {
       savedAt: new Date().toISOString()
     };
     
+    // グループ情報を保存
+    if (this.groupManager) {
+      layoutData.groups = this.groupManager.getAll().map(group => group.toJSON());
+    }
+    
+    // カスタム色を保存
+    if (this.uiManager) {
+      layoutData.customColors = this.uiManager.getCustomColors();
+    }
+    
     const jsonStr = JSON.stringify(layoutData, null, 2);
     const blob = new Blob([jsonStr], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -97,6 +128,22 @@ class StorageManager {
     this.room.updateSize(layoutData.room.width, layoutData.room.depth, layoutData.room.height);
     this.objectManager.loadFromJSON(layoutData.objects);
     this.featureManager.loadFromJSON(layoutData.roomFeatures);
+    
+    // グループ情報を復元
+    if (this.groupManager && layoutData.groups) {
+      this.groupManager.loadFromJSON(layoutData.groups);
+    }
+    
+    // カスタム色を復元
+    if (this.uiManager && layoutData.customColors) {
+      this.uiManager.setCustomColors(layoutData.customColors);
+    }
+    
+    // UIを更新
+    if (this.uiManager) {
+      this.uiManager.updateObjectList();
+      this.uiManager.updateGroupList();
+    }
   }
 }
 

@@ -2,13 +2,14 @@
  * ドラッグ&ドロップ処理を行うクラス
  */
 class DragAndDropHandler {
-  constructor(room, objectManager, featureManager, viewRenderer, coordinateConverter) {
+  constructor(room, objectManager, featureManager, viewRenderer, coordinateConverter, groupManager = null) {
     this.room = room;
     this.objectManager = objectManager;
     this.featureManager = featureManager;
     this.viewRenderer = viewRenderer;
     this.coordinateConverter = coordinateConverter;
-    this.dragging = null; // {obj, offsetX, offsetY}
+    this.groupManager = groupManager;
+    this.dragging = null; // {obj, offsetX, offsetY, group, groupObjects}
     this.draggingFeature = null; // {feature, offset}
   }
 
@@ -88,10 +89,29 @@ class DragAndDropHandler {
    * @param {{x: number, y: number}} roomCoords - 部屋座標
    */
   startObjectDrag(obj, roomCoords) {
+    // グループに属しているかチェック
+    let group = null;
+    let groupObjects = [];
+    
+    if (this.groupManager) {
+      group = this.groupManager.getGroupByObjectId(obj.id);
+      if (group) {
+        groupObjects = this.groupManager.getObjectsInGroup(group.id);
+        // グループ内の各オブジェクトの相対位置を保存
+        groupObjects = groupObjects.map(o => ({
+          obj: o,
+          relativeX: o.x - obj.x,
+          relativeY: o.y - obj.y
+        }));
+      }
+    }
+
     this.dragging = {
       obj,
       offsetX: roomCoords.x - obj.x,
-      offsetY: roomCoords.y - obj.y
+      offsetY: roomCoords.y - obj.y,
+      group: group,
+      groupObjects: groupObjects
     };
   }
 
@@ -136,12 +156,50 @@ class DragAndDropHandler {
     let newX = Math.max(0, Math.min(this.room.width - obj.w, roomCoords.x - this.dragging.offsetX));
     let newY = Math.max(0, Math.min(this.room.depth - obj.d, roomCoords.y - this.dragging.offsetY));
 
-    if (!obj.stackable && this.objectManager.checkOverlap(obj, newX, newY)) {
-      return;
-    }
+    // グループ全体を移動する場合
+    if (this.dragging.group && this.dragging.groupObjects.length > 0) {
+      // グループ内のすべてのオブジェクトが移動可能かチェック
+      let canMove = true;
+      for (const item of this.dragging.groupObjects) {
+        const targetX = newX + item.relativeX;
+        const targetY = newY + item.relativeY;
+        if (targetX < 0 || targetX + item.obj.w > this.room.width ||
+            targetY < 0 || targetY + item.obj.d > this.room.depth) {
+          canMove = false;
+          break;
+        }
+        // 重なりチェック（stackableがfalseの場合）
+        if (!item.obj.stackable) {
+          const tempObj = { ...item.obj, x: targetX, y: targetY, stackable: false };
+          // グループ内の他のオブジェクトとの重なりは無視
+          if (this.objectManager.checkOverlap(tempObj, targetX, targetY, true)) {
+            canMove = false;
+            break;
+          }
+        }
+      }
 
-    obj.x = newX;
-    obj.y = newY;
+      if (canMove) {
+        // グループ全体を移動
+        obj.x = newX;
+        obj.y = newY;
+        obj.constrainToRoom(this.room);
+
+        this.dragging.groupObjects.forEach(item => {
+          item.obj.x = newX + item.relativeX;
+          item.obj.y = newY + item.relativeY;
+          item.obj.constrainToRoom(this.room);
+        });
+      }
+    } else {
+      // 単一オブジェクトの移動
+      if (!obj.stackable && this.objectManager.checkOverlap(obj, newX, newY)) {
+        return;
+      }
+
+      obj.x = newX;
+      obj.y = newY;
+    }
   }
 
   /**
